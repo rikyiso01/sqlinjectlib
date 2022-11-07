@@ -19,7 +19,7 @@ jobs:
             - uses: actions/setup-python@v4
               name: Setup python
               with:
-                  python-version: 3.10
+                  python-version: "3.10"
             - uses: Gr1N/setup-poetry@v7
               name: Setup poetry
             - run: poetry install
