@@ -1,0 +1,28 @@
+name: Automated tests
+
+on:
+    workflow_dispatch:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              name: Checkout
+            - uses: actions/setup-python@v4
+              name: Setup python
+              with:
+                  python-version: 3.10
+            - uses: Gr1N/setup-poetry@v7
+              name: Setup poetry
+            - run: poetry install
+              name: Install dependencies
+            - run: poetry run python -m pytest
+              name: Run tests
