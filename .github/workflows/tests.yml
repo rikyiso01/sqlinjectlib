@@ -24,5 +24,7 @@ jobs:
               name: Setup poetry
             - run: poetry install
               name: Install dependencies
+            - run: docker-compose up -d
+              name: Starts mysql
             - run: poetry run python -m pytest
               name: Run tests
