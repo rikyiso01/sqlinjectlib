@@ -21,7 +21,7 @@ DB: TypeAlias = "MySQLConnection | SQLiteConnection"
 
 def mysql() -> Iterator[tuple[MySQLConnection, DatabaseType]]:
     with mysql_connect(
-        host="127.0.0.1", port=3306, user="root", passwd="example"
+        host="db", port=3306, user="root", passwd="example"
     ) as connection:
         yield (connection, MySQL())
 

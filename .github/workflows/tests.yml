@@ -16,14 +16,5 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               name: Checkout
-            - uses: actions/setup-python@v4
-              name: Setup python
-              with:
-                  python-version: "3.10"
-            - uses: Gr1N/setup-poetry@v7
-              name: Setup poetry
-            - run: poetry install
-              name: Install dependencies
-            - run: docker-compose up -d
-            - run: poetry run python -m pytest
+            - run: docker-compose up --abort-on-container-exit pytest
               name: Run tests
