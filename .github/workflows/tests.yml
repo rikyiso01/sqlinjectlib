@@ -24,10 +24,6 @@ jobs:
               name: Setup poetry
             - run: poetry install
               name: Install dependencies
-            - uses: mirromutth/mysql-action@v1.1
-              with:
-                  host port: 3306
-                  mysql user: "root"
-                  mysql password: "example"
+            - run: docker-compose up -d
             - run: poetry run python -m pytest
               name: Run tests
