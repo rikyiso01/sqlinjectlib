@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, Iterator, TypeAlias
-from sqlinject import (
+from sqlinjectlib import (
     BlindInjector,
     SQL,
     SQLInjector,

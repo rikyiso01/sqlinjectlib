@@ -1,4 +1,4 @@
-from sqlinject import Query, SQL, Unknown
+from sqlinjectlib import Query, SQL, Unknown
 from pytest import mark
 
 

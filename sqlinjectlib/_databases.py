@@ -1,44 +1,89 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
-from sqlinject._typedql import SimpleQuery, SQL, Char, SQLType
+from sqlinjectlib._typedql import SimpleQuery, SQL, Char, SQLType
 
 
 class DatabaseType(ABC):
+    """Abstract class used to build non standard SQL queries"""
+
     @abstractmethod
     def get_databases(self) -> SimpleQuery:
+        """Creates a query to list all databases
+
+        - returns: a SimpleQuery to list all the databases
+        """
         ...
 
     @abstractmethod
     def get_tables(self, database: str, /) -> SimpleQuery:
+        """Creates a query to list all the tables of a database
+
+        - database: the database to list the tables
+        - returns: a SimpleQuery to list all the tables in the database
+        """
         ...
 
     @abstractmethod
     def get_columns(self, table: str, /) -> SimpleQuery:
+        """Creates a query to list all the columns of a table
+
+        - table: the table to list the columns
+        - returns: a SimpleQuery to list all the columns in the table
+        """
         ...
 
     @abstractmethod
     def ascii(self, sql: SQL[Char], /) -> SQL[int]:
+        """Creates a query that converts a char into its ascii representation
+
+        - sql: the source query
+        - returns: a query that returns the ascii representation of the result of the given query
+        """
         ...
 
     @abstractmethod
     def if_else(
         self, condition: SQL[bool], then: SQL[SQLType], otherwise: SQL[SQLType], /
     ) -> SQL[SQLType]:
+        """Creates a query that returns the first value if the condition is true otherwise the second value
+
+        - condition: the query to use for the condition
+        - then: the first value
+        - otherwise: the second value
+        - returns: a query that returns the result of the first query if the value of the condition is true
+            otherwise the result of the second query
+        """
         ...
 
     @abstractmethod
     def sleep(self, time: SQL[int], /) -> SQL[int]:
+        """Creates a query that makes the dbms sleep for the given seconds
+
+        - time: the time to sleep
+        - returns: a query that returns a value that has no meaning
+        """
         ...
 
     def parse_columns(self, columns: list[str], /) -> list[str]:
+        """Post processes the columns obtained by resolving the get_columns query
+
+        - columns: the columns returned by the get_columns query
+        - returns: the new columns
+        """
         return columns
 
     def __repr__(self) -> str:
+        """Returns a represetnation of this object
+
+        - returns: the name of the database
+        """
         return type(self).__name__
 
 
 class MySQL(DatabaseType):
+    """Support for MySQL specific queries"""
+
     def get_databases(self) -> SimpleQuery:
         return SimpleQuery(SQL.column("schema_name"), "information_schema.schemata")
 
@@ -69,6 +114,8 @@ class MySQL(DatabaseType):
 
 
 class SQLite(DatabaseType):
+    """Support for SQLite specific queries"""
+
     def get_databases(self) -> SimpleQuery:
         return SimpleQuery(
             SQL.column("name"),

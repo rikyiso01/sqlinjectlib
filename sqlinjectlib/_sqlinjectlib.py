@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from asyncio import run
 from sys import stderr
 from time import time
-from sqlinject._typedql import (
+from sqlinjectlib._typedql import (
     SimpleQuery,
     Query,
     SQL,
@@ -11,12 +11,12 @@ from sqlinject._typedql import (
     SQLException,
     TABLE_NAME,
 )
-from sqlinject._table import Table
-from sqlinject._databases import DatabaseType, MySQL
+from sqlinjectlib._table import Table
+from sqlinjectlib._databases import DatabaseType, MySQL
 from typing import Any, Literal, NoReturn, TypeVar, overload
 from re import compile
 from collections.abc import Callable, AsyncGenerator, Awaitable
-from sqlinject._utils import wrap, print_test_result, list_is_not_none
+from sqlinjectlib._utils import wrap, print_test_result, list_is_not_none
 from importlib import import_module
 
 HELP_REGEX = compile(r"help")
@@ -29,35 +29,62 @@ T = TypeVar("T")
 V = TypeVar("V")
 
 InjectorFunction = Callable[[T], V | Awaitable[V]]
+"""Generic type of a function that takes a type and can return an awaitable or a result"""
 
 
 class SQLInjector:
+    """Basic SQL injection
+
+    You have a basic SQL injection when you can inject an SQL query that prints a single column
+    """
+
     def __init__(
         self,
         injector: InjectorFunction[SimpleQuery, list[str | None]],
         *,
         database_type: DatabaseType = MySQL(),
     ):
+        """
+        - injector: function that given a query over a single column returns the list of values
+        - database_type: the type of the database you are injecting into
+        """
         self.__database_type: DatabaseType = database_type
         self.__injector = wrap(injector)
 
     @property
     def database_type(self) -> DatabaseType:
+        """Getter for the database type
+
+        - returns: the database type
+        """
         return self.__database_type
 
     async def list_databases(self) -> list[str]:
+        """List all databases in the dbms
+
+        - returns: a list containing all the name of the databases"""
         result = await self.query(self.database_type.get_databases())
         if not list_is_not_none(result):
             raise ValueError("Some database names are null")
         return result
 
     async def list_tables(self, database: str, /) -> list[str]:
+        """List all the tables in the given database
+
+        - database: the database to get the tables from
+        - returns: a list containing all the name of the tables in the database
+        """
         result = await self.query(self.database_type.get_tables(database))
         if not list_is_not_none(result):
             raise ValueError(f"Some table names are null for '{database}'")
         return result
 
     async def list_columns(self, table: str, /) -> list[str]:
+        """List all the columns in a table
+
+        - table: the table to list the columns
+        - returns: a list containing all the name of the columns in the table
+        """
         result = await self.query(self.database_type.get_columns(table))
         if not list_is_not_none(result):
             raise ValueError(f"Some column names are null for '{table}'")
@@ -75,6 +102,13 @@ class SQLInjector:
     async def query(
         self, query: SimpleQuery | Query | str, /
     ) -> Table | list[str | None]:
+        """Perform a query in the attacked database
+
+        - query: the query to use
+        - returns: a list of values of the column if the query is a SimpleQuery,
+            a table if the query is a Query or a string containing the query
+        - raises QuerySyntaxError: if the query is malformed
+        """
         if isinstance(query, SimpleQuery):
             return await self.__injector(query)
         if isinstance(query, str):
@@ -82,7 +116,7 @@ class SQLInjector:
         if query.select is None:
             if query.table is None:
                 raise QuerySyntaxError(
-                    f"You can's select all from a non table '{query}'"
+                    f"You can't select all from a non table '{query}'"
                 )
             columns = await self.list_columns(query.table)
             query = Query(
@@ -104,6 +138,10 @@ class SQLInjector:
         return Table([str(q) for q in query.select], tuples)
 
     async def test(self) -> AsyncGenerator[tuple[str, bool], None]:
+        """Tests if the injector gives the correct values
+
+        - returns: an iterable of name result for each test
+        """
         try:
             r = await self.__injector(SimpleQuery(SQL.int(1), None, None))
             result = len(r) == 1 and r[0] == "1"

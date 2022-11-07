@@ -1,13 +1,18 @@
 from __future__ import annotations
 from typing import Any
-from sqlinject._sqlinject import SQLInjector, InjectorFunction
-from sqlinject._databases import DatabaseType, MySQL
-from sqlinject._typedql import SimpleQuery, SQL
+from sqlinjectlib._sqlinjectlib import SQLInjector, InjectorFunction
+from sqlinjectlib._databases import DatabaseType, MySQL
+from sqlinjectlib._typedql import SimpleQuery, SQL
 from collections.abc import AsyncGenerator
-from sqlinject._utils import wrap
+from sqlinjectlib._utils import wrap
 
 
 class UnionInjector(SQLInjector):
+    """Union based SQL injection
+
+    You have a union based SQL injection when you can get a single value from a query using the union statement
+    """
+
     def __init__(
         self,
         injector: InjectorFunction[SQL[str], str | None],
@@ -15,6 +20,10 @@ class UnionInjector(SQLInjector):
         *,
         database_type: DatabaseType = MySQL(),
     ):
+        """
+        - injector: function that given a string SQL expression, returns the result
+        - database_type: the type of the database you are injecting into
+        """
         self.__injector = wrap(injector)
         super().__init__(self.__call, database_type=database_type)
 

@@ -1,15 +1,27 @@
 from __future__ import annotations
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, MutableSequence, Sequence
 from typing import overload
 
 
-class Table:
+class Table(Sequence[list[str | None]]):
+    """Representation of the result of an SQL query"""
+
     __slots__ = ("_columns", "_tuples")
 
-    def __init__(self, columns: list[str], tuples: Iterable[list[str | None]], /):
-        self._columns = columns.copy()
-        self._tuples = [t.copy() for t in tuples]
-        for t in tuples:
+    def __init__(
+        self,
+        columns: MutableSequence[str],
+        tuples: Iterable[MutableSequence[str | None]],
+        /,
+    ):
+        """
+        - columns: the name of the columns
+        - tuples: an iterable of rows
+        - raises ValueError: if the rows have a different number of elements than the columns
+        """
+        self._columns = tuple(columns)
+        self._tuples = tuple(tuple(t) for t in tuples)
+        for t in self._tuples:
             if len(t) != len(self._columns):
                 raise ValueError(
                     f"Some rows don't have the right number of columns, found '{len(t)}' expected '{len(self._columns)}'"
@@ -20,7 +32,13 @@ class Table:
 
     @property
     def degree(self) -> int:
+        """The number of columns"""
         return len(self._columns)
+
+    @property
+    def columns(self) -> list[str]:
+        """The name of the columns"""
+        return list(self._columns)
 
     @overload
     def __getitem__(self, item: int | str, /) -> list[str | None]:
@@ -32,15 +50,12 @@ class Table:
 
     def __getitem__(self, item: int | slice | str, /) -> list[str | None] | Table:
         if isinstance(item, int):
-            return self._tuples[item]
+            return list(self._tuples[item])
         elif isinstance(item, slice):
-            return Table(self._columns, self._tuples[item])
+            return Table(list(self._columns), self)
         else:
             index = self._columns.index(item)
             return [t[index] for t in self._tuples]
-
-    def __iter__(self) -> Iterator[list[str | None]]:
-        return iter([t.copy() for t in self._tuples])
 
     def __str__(self) -> str:
         elements = [len(t) for t in self._columns] + [
@@ -58,4 +73,10 @@ class Table:
         return result
 
     def __repr__(self) -> str:
-        return f"Table({self._columns}, {[list(t) for t in self._tuples]})"
+        return f"Table({self._columns}, {[[repr(elem) for elem in t] for t in self]})"
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Table) and other._columns == self._columns
+
+    def __hash__(self) -> int:
+        return hash((self._columns, self._tuples))

@@ -1,14 +1,19 @@
 from __future__ import annotations
 from asyncio import gather
 from typing import AsyncGenerator
-from sqlinject._sqlinject import InjectorFunction
-from sqlinject._unioninject import UnionInjector
-from sqlinject._databases import DatabaseType, MySQL
-from sqlinject._typedql import SQL
-from sqlinject._utils import wrap
+from sqlinjectlib._sqlinjectlib import InjectorFunction
+from sqlinjectlib._unioninject import UnionInjector
+from sqlinjectlib._databases import DatabaseType, MySQL
+from sqlinjectlib._typedql import SQL
+from sqlinjectlib._utils import wrap
 
 
 class BlindInjector(UnionInjector):
+    """Blind SQL injection
+
+    You have a blind SQL injection when you can inject an SQL query that returns a boolean value
+    """
+
     def __init__(
         self,
         injector: InjectorFunction[SQL[bool], bool],
@@ -17,6 +22,11 @@ class BlindInjector(UnionInjector):
         concurrent: bool = False,
         database_type: DatabaseType = MySQL(),
     ):
+        """
+        - injector: function that given a boolean query returns the result
+        - concurrent: if the function can be called multiple times concurrently to speed up
+        - database_type: the type of the database you are injecting into
+        """
         self.__concurrent = concurrent
         self.__injector = wrap(injector)
         super().__init__(self.__call, database_type=database_type)
