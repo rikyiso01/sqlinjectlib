@@ -1,0 +1,1 @@
+poetry run pdoc sqlinjectlib -o .docs

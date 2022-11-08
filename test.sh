@@ -1,2 +1,1 @@
-docker-compose up -d
-poetry run python -m pytest
+docker-compose up --abort-on-container-exit pytest

@@ -9,8 +9,12 @@ services:
     hostname: db
   pytest:
     image: python:3.10.7
-    command: bash -c 'cd /app && python3 -m pip install poetry && poetry install && poetry run python -m pytest'
+    command: bash -c 'cd /app && python3 -m pip install poetry && poetry install --with test && poetry run python -m pytest'
     depends_on:
       - db
     volumes:
-      - .:/app:ro
+      - ./sqlinjectlib:/app/sqlinjectlib:ro
+      - ./tests:/app/tests:ro
+      - ./poetry.lock:/app/poetry.lock:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./README.md:/app/README.md:ro

@@ -1,0 +1,48 @@
+name: Docs
+
+on:
+    workflow_dispatch:
+    workflow_run:
+        workflows:
+            - Deploy
+        types:
+            - completed
+
+jobs:
+    deploy:
+        permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              name: Checkout
+            - uses: Gr1N/setup-poetry@v7
+              name: Setup poetry
+            - run: poetry install --with docs
+              name: Install dependencies
+            - run: bash docs.sh
+              name: Generate docs
+            - run: |
+                  tar \
+                    --dereference --hard-dereference \
+                    --directory .docs \
+                    -cvf "$RUNNER_TEMP/artifact.tar" \
+                    --exclude=.git \
+                    --exclude=.github \
+                    .
+              name: Archive artifact
+            - uses: actions/upload-artifact@main
+              with:
+                  name: github-pages
+                  path: ${{ runner.temp }}/artifact.tar
+              name: Upload artifact
+            - uses: actions/deploy-pages@v1
+              name: Deploy to GitHub Pages
+              id: deployment
