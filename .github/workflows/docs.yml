@@ -2,11 +2,8 @@ name: Docs
 
 on:
     workflow_dispatch:
-    workflow_run:
-        workflows:
-            - Deploy
-        types:
-            - completed
+    release:
+        types: [published]
 
 jobs:
     deploy:
@@ -23,6 +20,10 @@ jobs:
         steps:
             - uses: actions/checkout@v3
               name: Checkout
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: "3.10"
+              name: Setup python
             - uses: Gr1N/setup-poetry@v7
               name: Setup poetry
             - run: poetry install --with docs
