@@ -38,6 +38,18 @@ class QuerySyntaxError(SQLException):
     ...
 
 
+class NoSuchDatabaseError(SQLException):
+    """Exception related to a missing database"""
+
+    ...
+
+
+class NoSuchTableError(SQLException):
+    """Exception related to a missing table"""
+
+    ...
+
+
 @dataclass(frozen=True, slots=True)
 class Query:
     """Representation of a complete SQL query"""

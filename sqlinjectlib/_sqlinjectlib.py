@@ -10,13 +10,15 @@ from sqlinjectlib._typedql import (
     QuerySyntaxError,
     SQLException,
     TABLE_NAME,
+    NoSuchDatabaseError,
+    NoSuchTableError,
 )
 from sqlinjectlib._table import Table
 from sqlinjectlib._databases import DatabaseType, MySQL
 from typing import Any, Literal, NoReturn, TypeVar, overload
 from re import compile
 from collections.abc import Callable, AsyncGenerator, Awaitable
-from sqlinjectlib._utils import wrap, print_test_result, list_is_not_none
+from sqlinjectlib._utils import wrap, print_test_result, list_is_not_none, Colors
 from importlib import import_module
 
 HELP_REGEX = compile(r"help")
@@ -77,6 +79,8 @@ class SQLInjector:
         result = await self.query(self.database_type.get_tables(database))
         if not list_is_not_none(result):
             raise ValueError(f"Some table names are null for '{database}'")
+        if len(result) == 0:
+            raise NoSuchDatabaseError(f"Database '{database}' not found")
         return result
 
     async def list_columns(self, table: str, /) -> list[str]:
@@ -88,6 +92,8 @@ class SQLInjector:
         result = await self.query(self.database_type.get_columns(table))
         if not list_is_not_none(result):
             raise ValueError(f"Some column names are null for '{table}'")
+        if len(result) == 0:
+            raise NoSuchTableError(f"Table '{table}' not found")
         result = self.database_type.parse_columns(result)
         return result
 
@@ -203,7 +209,7 @@ async def interactive(injector: SQLInjector) -> None:
     print("Type 'help' for a list of special commands")
     while True:
         try:
-            line = input("> ").strip()
+            line = input(f"{Colors.GREEN}>{Colors.RESET} ").strip()
             start = time()
             if LIST_DATABASES_REGEX.fullmatch(line):
                 for d in await injector.list_databases():
@@ -217,16 +223,25 @@ async def interactive(injector: SQLInjector) -> None:
                 for c in await injector.list_columns(match.group(1)):
                     print(c)
             elif HELP_REGEX.fullmatch(line):
-                print("Special commands:")
-                print("- list: list all databases")
-                print("- list [database]: list all tables of database")
-                print("- columns [table]: list all columns of table")
-                print("- exit: exit the program")
+                print(f"{Colors.YELLOW}SPECIAL COMMANDS:{Colors.RESET}")
+                print(f"- {Colors.CYAN}list:{Colors.RESET} list all databases")
+                print(
+                    f"- {Colors.CYAN}list [database]:{Colors.RESET} list all tables of database"
+                )
+                print(
+                    f"- {Colors.CYAN}columns [table]:{Colors.RESET} list all columns of table"
+                )
+                print(f"- {Colors.RED}exit:{Colors.RESET} exit the program")
                 continue
             else:
                 print(await injector.query(line))
-            print("Operation took", time() - start)
+            print("")
+            print(
+                f"{Colors.GREEN}[Operation took {round(time() - start,3)}s]{Colors.RESET}"
+            )
         except (SQLException) as e:
-            print(type(e).__name__, ":", e, file=stderr)
+            print(
+                f"{Colors.RED}[{type(e).__name__}]{Colors.RESET}", ":", e, file=stderr
+            )
         except (EOFError, KeyboardInterrupt):
             exit()

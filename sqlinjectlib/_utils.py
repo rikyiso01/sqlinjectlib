@@ -2,12 +2,17 @@ from typing import TypeGuard, TypeVar, cast
 from typing_extensions import TypeVarTuple, Unpack
 from collections.abc import Callable, Awaitable
 
-RED = "\u001b[31m"
-GREEN = "\u001b[32m"
-RESET = "\u001b[0m"
 
-PASSED = f"{GREEN}ok{RESET}"
-FAILED = f"{RED}error{RESET}"
+class Colors:
+    RED = "\u001b[31m"
+    GREEN = "\u001b[32m"
+    YELLOW = "\u001b[33m"
+    RESET = "\u001b[0m"
+    CYAN = "\u001b[36m"
+
+
+PASSED = f"{Colors.GREEN}ok{Colors.RESET}"
+FAILED = f"{Colors.RED}error{Colors.RESET}"
 
 T = TypeVarTuple("T")
 V = TypeVar("V")

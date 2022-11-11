@@ -21,6 +21,8 @@ class Table(Sequence[list[str | None]]):
         """
         self._columns = tuple(columns)
         self._tuples = tuple(tuple(t) for t in tuples)
+        if len(self._columns) == 0:
+            raise ValueError("A table withot columns cannot exists")
         for t in self._tuples:
             if len(t) != len(self._columns):
                 raise ValueError(
