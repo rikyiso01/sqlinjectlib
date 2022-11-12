@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sqlinjectlib"
-version = "0.1.1"
+version = "0.1.2"
 description = "A library to simplify SQL injections during CTFs"
 authors = ["rikyiso01 <riky.isola@gmail.com>"]
 classifiers = [
