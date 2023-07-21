@@ -15,6 +15,5 @@ services:
     volumes:
       - ./sqlinjectlib:/app/sqlinjectlib:ro
       - ./tests:/app/tests:ro
-      - ./poetry.lock:/app/poetry.lock:ro
       - ./pyproject.toml:/app/pyproject.toml:ro
       - ./README.md:/app/README.md:ro
